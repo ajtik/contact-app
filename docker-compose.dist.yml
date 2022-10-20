@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  php-apache:
+    build:
+      context: .
+      dockerfile: containers/php-apache/Dockerfile
+      target: dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/app
+    environment:
+      - 'APP_VERSION=0.1.0'
+      - 'APP_ENV=dev'
+      - 'APP_DEBUG=1'
+      - 'APP_SECRET=057d4eff95ad0c802e712ea5afa7da77'
+      - 'DATABASE_URL=postgresql://contact-app:contact-app@postgresql:5432/contact-app?serverVersion=14&charset=utf8'
+      - 'CORS_ALLOW_ORIGIN=^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$$'
+      - 'MAILER_DSN=smtp://mailhog:1025'
+
+  postgresql:
+    image: postgres:14.1-bullseye
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=contact-app
+      - POSTGRES_USER=contact-app
+      - POSTGRES_PASSWORD=contact-app
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+
+  sphinx:
+    build:
+      context: .
+      dockerfile: containers/sphinx/Dockerfile
+    tty: true
+    command: bash
+    volumes:
+      - ./docs:/docs
+
+volumes:
+  postgresql_data:
